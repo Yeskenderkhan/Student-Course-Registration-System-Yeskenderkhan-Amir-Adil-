@@ -1,6 +1,6 @@
 package app;
 
-// Author: Amir, Adil, Esken
+// Author: Amir, Adil, Yeskenderkhan
 // Group: ST-2504
 // Assignment 3
 
