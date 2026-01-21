@@ -1,6 +1,6 @@
 # Student Course Registration System
 
-Project for Assignment 3 (OOP, Java, JDBC)
+Project for Assignment 3 (OOP)
 
 GROUP OF ST-2504
 
