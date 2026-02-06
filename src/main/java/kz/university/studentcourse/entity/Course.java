@@ -23,12 +23,9 @@ public class Course {
     @ManyToOne
     @JoinColumn(name = "prerequisite_id")
     private Course prerequisite;
-
     @ManyToMany(mappedBy = "courses", fetch = FetchType.EAGER)
     private Set<Student> students = new HashSet<>();
-
     public Course() {}
-
     public Course(String title, String description, int seats, int credits, String category, String instructor, Course prerequisite) {
         this.title = title;
         this.description = description;
@@ -41,12 +38,11 @@ public class Course {
 
     public boolean hasSeats() { return students.size() < seats; }
 
-    // Вспомогательный метод для шаблона (сколько записалось)
+    //  метод для шаблона вспомогательный чтобы смотреть сколько записалось студентов
     public int getEnrolledCount() {
         return students.size();
     }
-
-    // Геттеры и сеттеры
+    // геттеры и сеттеры добавились
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
