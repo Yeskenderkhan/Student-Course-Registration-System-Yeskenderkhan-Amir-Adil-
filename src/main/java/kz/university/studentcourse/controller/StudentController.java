@@ -9,7 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class StudentController {
@@ -22,11 +25,8 @@ public class StudentController {
         this.courseRepo = courseRepo;
     }
 
-    // === LOGIN PAGE ===
     @GetMapping("/")
-    public String showLogin() {
-        return "login";
-    }
+    public String showLogin() { return "login"; }
 
     @PostMapping("/login")
     public String login(@RequestParam String email, @RequestParam String name, HttpSession session) {
@@ -45,66 +45,79 @@ public class StudentController {
         return "redirect:/";
     }
 
-    // === MENU TABS ===
+    // === FIX: Всегда обновляем студента из базы ===
+    private Student getFreshUser(HttpSession session) {
+        Student sessionUser = (Student) session.getAttribute("user");
+        if (sessionUser == null) return null;
+        return studentRepo.findById(sessionUser.getId()).orElse(null);
+    }
 
     @GetMapping("/home")
     public String home(HttpSession session, Model model) {
-        Student user = checkSession(session);
+        Student user = getFreshUser(session); // Получаем свежие данные
         if (user == null) return "redirect:/";
 
         model.addAttribute("student", user);
-        return "home"; // Новая страница "Home"
-    }
-
-    @GetMapping("/help")
-    public String help(HttpSession session, Model model) {
-        Student user = checkSession(session);
-        if (user == null) return "redirect:/";
-
-        model.addAttribute("student", user);
-        return "help"; // Новая страница "Help"
+        model.addAttribute("credits", user.getCurrentCredits());
+        return "home";
     }
 
     @GetMapping("/courses")
     public String listCourses(Model model, HttpSession session) {
-        Student user = checkSession(session);
+        Student user = getFreshUser(session);
         if (user == null) return "redirect:/";
-
-        // Обновляем данные студента из БД
-        user = studentRepo.findById(user.getId()).orElse(null);
 
         List<Course> allCourses = courseRepo.findAll();
 
-        model.addAttribute("courses", allCourses);
+        // Группируем курсы по категориям (CS, Math, etc.)
+        Map<String, List<Course>> groupedCourses = allCourses.stream()
+                .sorted(Comparator.comparing(Course::getId)) // Сортировка по ID
+                .collect(Collectors.groupingBy(Course::getCategory));
+
+        model.addAttribute("groupedCourses", groupedCourses);
         model.addAttribute("student", user);
+        model.addAttribute("currentCredits", user.getCurrentCredits());
         return "course_list";
     }
 
-    // === LOGIC ===
+    @GetMapping("/help")
+    public String help(HttpSession session, Model model) {
+        Student user = getFreshUser(session);
+        if (user == null) return "redirect:/";
+        model.addAttribute("student", user);
+        return "help";
+    }
 
+    // === ЛОГИКА ЗАПИСИ ===
     @PostMapping("/enroll/{courseId}")
     public String enroll(@PathVariable Long courseId, HttpSession session) {
-        Student user = checkSession(session);
+        Student user = getFreshUser(session);
         if (user == null) return "redirect:/";
 
         Course course = courseRepo.findById(courseId).orElse(null);
-        user = studentRepo.findById(user.getId()).orElse(null);
+        if (course == null) return "redirect:/courses";
 
-        if (course != null && user != null) {
-            // Проверка: есть ли места И не записан ли уже
-            if (course.hasSeats() && !user.getCourses().contains(course)) {
-                user.getCourses().add(course);
-                course.getStudents().add(user); // Важно для связи ManyToMany
-
-                studentRepo.save(user);
-                courseRepo.save(course);
-            }
+        // 1. Проверка лимита (20 кредитов)
+        if (user.getCurrentCredits() + course.getCredits() > 20) {
+            return "redirect:/courses?error=credits";
         }
-        return "redirect:/courses";
-    }
 
-    // Вспомогательный метод проверки входа
-    private Student checkSession(HttpSession session) {
-        return (Student) session.getAttribute("user");
+        // 2. Проверка пререквизитов (Есть ли базовый курс?)
+        if (course.getPrerequisite() != null && !user.getCourses().contains(course.getPrerequisite())) {
+            return "redirect:/courses?error=prereq";
+        }
+
+        // 3. Стандартные проверки (места и повторная запись)
+        if (course.hasSeats() && !user.getCourses().contains(course)) {
+            user.getCourses().add(course);
+            course.getStudents().add(user); // Для связи
+            // Важно: уменьшаем места
+            course.setSeats(course.getSeats() - 1);
+
+            studentRepo.save(user);
+            courseRepo.save(course);
+        }
+
+        return "redirect:/courses";
     }
 }

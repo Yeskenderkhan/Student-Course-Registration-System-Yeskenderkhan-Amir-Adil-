@@ -12,8 +12,6 @@ public class Student {
     private Long id;
 
     private String name;
-
-    // Используем это как логин
     @Column(unique = true)
     private String email;
 
@@ -31,13 +29,14 @@ public class Student {
         this.email = email;
     }
 
+    // Подсчет кредитов
+    public int getCurrentCredits() {
+        return courses.stream().mapToInt(Course::getCredits).sum();
+    }
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
     public List<Course> getCourses() { return courses; }
-    public void setCourses(List<Course> courses) { this.courses = courses; }
 }

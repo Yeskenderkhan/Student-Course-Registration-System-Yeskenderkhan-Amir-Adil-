@@ -1,60 +1,78 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>All Courses</title>
+    <title>Course Catalog</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container">
         <a class="navbar-brand" href="#">University Portal</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/courses">Courses</a></li>
-                <li class="nav-item"><a class="nav-link" href="/help">Help Center</a></li>
-            </ul>
-            <span class="navbar-text text-white me-3">
-                    Signed in as: <strong th:text="${student.name}"></strong>
-                </span>
-            <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+        <div class="navbar-nav me-auto">
+            <a class="nav-link" href="/home">Home</a>
+            <a class="nav-link active" href="/courses">Courses</a>
+            <a class="nav-link" href="/help">Help</a>
         </div>
+        <span class="navbar-text text-white me-3">
+                Credits: <strong th:text="${currentCredits} + '/20'"></strong>
+            </span>
+        <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
     </div>
 </nav>
 
-<div class="container">
-    <h2 class="mb-4">Available Courses</h2>
+<div class="container pb-5">
+    <h2 class="mb-4">Course Catalog</h2>
 
-    <div class="row">
-        <div class="col-md-4 mb-4" th:each="c : ${courses}">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title" th:text="${c.title}">Course Title</h5>
-                    <p class="card-text text-muted" th:text="${c.description}">Desc</p>
+    <div th:if="${param.error == 'credits'}" class="alert alert-danger">
+        <strong>Failed!</strong> You cannot exceed 20 credits.
+    </div>
+    <div th:if="${param.error == 'prereq'}" class="alert alert-danger">
+        <strong>Failed!</strong> You are missing a prerequisite course.
+    </div>
 
-                    <div class="mb-2">
-                        <small class="text-muted">Enrollment Status:</small>
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar" role="progressbar"
-                                 th:style="'width:' + (${c.enrolledCount} * 100 / ${c.capacity}) + '%'"
-                                 th:classappend="${c.enrolledCount == c.capacity} ? 'bg-danger' : (${c.success} ? 'bg-success' : 'bg-warning')">
-                                <span th:text="${c.enrolledCount} + '/' + ${c.capacity}"></span>
-                            </div>
+    <div th:each="entry : ${groupedCourses}">
+        <h3 class="text-primary mt-4 border-bottom pb-2" th:text="${entry.key}">Topic Name</h3>
+
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4" th:each="c : ${entry.value}">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="card-title" th:text="${c.title}">Java</h5>
+                            <span class="badge bg-info text-dark" th:text="${c.credits} + ' Credits'"></span>
                         </div>
-                        <small th:if="${c.success}" class="text-success fw-bold">Group Formed! ✅</small>
-                        <small th:if="${!c.success and c.hasSeats()}" class="text-warning fw-bold">Filling up... ⏳</small>
-                        <small th:if="${!c.hasSeats()}" class="text-danger fw-bold">Class Full ⛔</small>
-                    </div>
 
-                    <div class="d-grid gap-2">
-                        <form th:if="${c.hasSeats() and !student.courses.contains(c)}"
-                              th:action="@{/enroll/{id}(id=${c.id})}" method="post">
-                            <button type="submit" class="btn btn-primary w-100">Enroll Now</button>
-                        </form>
+                        <p class="card-text text-muted small" th:text="${c.description}"></p>
 
-                        <button disabled th:if="${student.courses.contains(c)}" class="btn btn-success w-100">You are Enrolled</button>
-                        <button disabled th:if="${!c.hasSeats() and !student.courses.contains(c)}" class="btn btn-secondary w-100">Closed</button>
+                        <div th:if="${c.prerequisite != null}" class="alert alert-secondary py-1 px-2 small">
+                            ⚠️ Requires: <strong th:text="${c.prerequisite.title}"></strong>
+                        </div>
+
+                        <div class="mt-3">
+                            <form th:if="${c.hasSeats()
+                                              and !student.courses.contains(c)
+                                              and (student.currentCredits + c.credits <= 20)
+                                              and (c.prerequisite == null or student.courses.contains(c.prerequisite))}"
+                                  th:action="@{/enroll/{id}(id=${c.id})}" method="post">
+                                <button type="submit" class="btn btn-outline-primary w-100">Enroll</button>
+                            </form>
+
+                            <button disabled th:if="${student.courses.contains(c)}"
+                                    class="btn btn-success w-100">✅ Enrolled</button>
+
+                            <button disabled th:if="${!student.courses.contains(c) and (student.currentCredits + c.credits > 20)}"
+                                    class="btn btn-warning w-100">⛔ Credit Limit</button>
+
+                            <button disabled th:if="${!student.courses.contains(c) and c.prerequisite != null and !student.courses.contains(c.prerequisite)}"
+                                    class="btn btn-secondary w-100">🔒 Locked (Need Prereq)</button>
+
+                            <button disabled th:if="${!c.hasSeats() and !student.courses.contains(c)}"
+                                    class="btn btn-danger w-100">Full</button>
+                        </div>
+
+                        <div class="mt-2 text-end">
+                            <small class="text-muted" th:text="${c.seats} + ' seats left'"></small>
+                        </div>
                     </div>
                 </div>
             </div>
