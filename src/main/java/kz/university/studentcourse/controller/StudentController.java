@@ -45,7 +45,6 @@ public class StudentController {
         return "redirect:/";
     }
 
-    // Метод получения свежих данных пользователя
     private Student getFreshUser(HttpSession session) {
         Student sessionUser = (Student) session.getAttribute("user");
         if (sessionUser == null) return null;
@@ -101,35 +100,20 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
-        // 1. Проверка кредитов
+        // Проверка лимита кредитов
         if (user.getCurrentCredits() + course.getCredits() > 20) {
             return "redirect:/courses?error=credits";
         }
 
-        // 2. УМНАЯ ПРОВЕРКА ПРЕРЕКВИЗИТОВ
-        if (course.getPrerequisite() != null) {
-            boolean hasPrereq = user.getCourses().contains(course.getPrerequisite());
-
-            // Если студента НЕТ пререквизита -> Блок
-            if (!hasPrereq) {
-                return "redirect:/courses?error=prereq";
-            }
-
-            if (hasPrereq) {
-                return "redirect:/courses?error=simultaneous";
-            }
-        }
-
+        // Запись
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
-            course.getStudents().add(user); // Важно для связи
+            course.getStudents().add(user);
             course.setSeats(course.getSeats() - 1);
 
             studentRepo.save(user);
             courseRepo.save(course);
         }
-
         return "redirect:/courses";
     }
-
 }

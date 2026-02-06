@@ -40,9 +40,6 @@
     <div th:if="${param.error == 'credits'}" class="alert alert-danger">
         <strong>Failed!</strong> You cannot exceed 20 credits.
     </div>
-    <div th:if="${param.error == 'prereq'}" class="alert alert-danger">
-        <strong>Locked!</strong> You must complete the prerequisite course first.
-    </div>
 
     <div th:each="entry : ${groupedCourses}">
         <h4 class="text-primary mt-4 border-bottom pb-2" th:text="${entry.key}">Topic</h4>
@@ -61,10 +58,6 @@
 
                         <p class="card-text text-muted small mt-2" th:text="${c.description}"></p>
 
-                        <div th:if="${c.prerequisite != null}" class="alert alert-light border py-1 px-2 small">
-                            ⚠️ Prerequisite: <strong th:text="${c.prerequisite?.title}">Base Course</strong>
-                        </div>
-
                         <div class="mt-3">
 
                             <div th:if="${student.courses.contains(c)}">
@@ -74,20 +67,27 @@
                             <div th:if="${!student.courses.contains(c) and c.prerequisite != null and !student.courses.contains(c.prerequisite)}">
                                 <button disabled class="btn btn-secondary w-100" style="opacity: 0.7;">🔒 Locked</button>
                                 <div class="text-danger small text-center mt-1 fw-bold">
-                                    Pass "<span th:text="${c.prerequisite?.title}">Subject</span>" first!
+                                    Must take "<span th:text="${c.prerequisite?.title}"></span>" first!
+                                </div>
+                            </div>
+
+                            <div th:if="${!student.courses.contains(c) and c.prerequisite != null and student.courses.contains(c.prerequisite)}">
+                                <button disabled class="btn btn-warning w-100 text-dark" style="opacity: 0.8;">⏳ Pending</button>
+                                <div class="text-warning small text-center mt-1 fw-bold">
+                                    Finish "<span th:text="${c.prerequisite?.title}"></span>" first!
                                 </div>
                             </div>
 
                             <div th:if="${!student.courses.contains(c)
-                                            and (c.prerequisite == null or student.courses.contains(c.prerequisite))
+                                            and (c.prerequisite == null)
                                             and (student.currentCredits + c.credits > 20)}">
-                                <button disabled class="btn btn-warning w-100 text-dark">⛔ Credit Limit</button>
+                                <button disabled class="btn btn-danger w-100">⛔ Not enough credits</button>
                             </div>
 
                             <form th:if="${c.hasSeats()
                                               and !student.courses.contains(c)
                                               and (student.currentCredits + c.credits <= 20)
-                                              and (c.prerequisite == null or student.courses.contains(c.prerequisite))}"
+                                              and (c.prerequisite == null)}"
                                   th:action="@{/enroll/{id}(id=${c.id})}" method="post">
                                 <button type="submit" class="btn btn-primary w-100 shadow-sm">
                                     Enroll (<span th:text="${c.credits}"></span> cr)
@@ -99,9 +99,6 @@
                             </div>
                         </div>
 
-                        <div class="mt-2 text-end">
-                            <small class="text-muted" th:text="${c.seats} + ' seats'"></small>
-                        </div>
                     </div>
                 </div>
             </div>
