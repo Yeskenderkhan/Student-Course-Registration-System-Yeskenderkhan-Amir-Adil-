@@ -11,7 +11,7 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initDatabase(CourseRepository repository) {
         return args -> {
-            // Если база пустая - заполняем
+            // Заполняем только если база пустая
             if (repository.count() == 0) {
 
                 // === 1. MATHEMATICS ===
@@ -21,18 +21,21 @@ public class DataInitializer {
                 Course stats = repository.save(new Course("Probability & Stats", "Data Analysis", 50, 4, "Mathematics", "Olga P.", calc1));
                 Course diffEq = repository.save(new Course("Diff Equations", "Advanced Math", 30, 4, "Mathematics", "Dr. Sadykov", calc2));
 
-                // === 2. COMPUTER SCIENCE ===
+                // === 2. COMPUTER SCIENCE (Imran Khaider Edition) ===
                 Course cs1 = repository.save(new Course("Intro to CS", "Binary & Logic", 100, 3, "Computer Science", "Alan Turing", null));
-                Course java1 = repository.save(new Course("Java Basics", "Variables & Loops", 80, 4, "Computer Science", "Dr. Sarah", null));
-                Course py1 = repository.save(new Course("Python Start", "Scripting", 80, 4, "Computer Science", "Assel N.", null));
 
-                Course java2 = repository.save(new Course("Java OOP", "Classes & Objects", 60, 5, "Computer Science", "Dr. Sarah", java1));
+                // --- JAVA TRACK (Imran Khaider) ---
+                Course java1 = repository.save(new Course("Java Basics", "Variables & Loops", 80, 4, "Computer Science", "Imran Khaider", null));
+                Course java2 = repository.save(new Course("Java OOP", "Classes & Objects", 60, 5, "Computer Science", "Imran Khaider", java1));
+                Course spring = repository.save(new Course("Spring Boot", "Web Framework", 30, 6, "Computer Science", "Imran Khaider", java2));
+                Course android = repository.save(new Course("Android Dev", "Kotlin Apps", 30, 5, "Computer Science", "Imran Khaider", java2));
+                // ----------------------------------
+
+                Course py1 = repository.save(new Course("Python Start", "Scripting", 80, 4, "Computer Science", "Assel N.", null));
                 Course algo = repository.save(new Course("Algorithms", "Trees & Graphs", 50, 5, "Computer Science", "Bekzat T.", java1));
                 Course ds = repository.save(new Course("Data Science", "Pandas & AI", 40, 4, "Computer Science", "Assel N.", py1));
                 Course db = repository.save(new Course("Databases", "SQL & Postgres", 60, 4, "Computer Science", "Daulet K.", java1));
 
-                Course spring = repository.save(new Course("Spring Boot", "Web Framework", 30, 6, "Computer Science", "Yeskender", java2));
-                Course android = repository.save(new Course("Android Dev", "Kotlin Apps", 30, 5, "Computer Science", "Google Team", java2));
                 Course ml = repository.save(new Course("Machine Learning", "Neural Networks", 25, 6, "Computer Science", "Andrew Ng", ds));
                 Course cyber = repository.save(new Course("Cyber Security", "Ethical Hacking", 30, 5, "Computer Science", "Mr. Robot", cs1));
 

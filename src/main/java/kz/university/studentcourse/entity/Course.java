@@ -16,9 +16,12 @@ public class Course {
     private int seats;
     private int credits;
     private String category;
-    private String instructor; // Новое поле: Имя преподавателя
+    private String instructor;
 
-    @OneToOne
+    // ИСПРАВЛЕНИЕ: Было @OneToOne, стало @ManyToOne
+    // Теперь один курс (например, Calc 1) может быть требованием для многих других
+    @ManyToOne
+    @JoinColumn(name = "prerequisite_id")
     private Course prerequisite;
 
     @ManyToMany(mappedBy = "courses", fetch = FetchType.EAGER)
@@ -26,7 +29,6 @@ public class Course {
 
     public Course() {}
 
-    // Обновленный конструктор
     public Course(String title, String description, int seats, int credits, String category, String instructor, Course prerequisite) {
         this.title = title;
         this.description = description;
@@ -39,6 +41,11 @@ public class Course {
 
     public boolean hasSeats() { return students.size() < seats; }
 
+    // Вспомогательный метод для шаблона (сколько записалось)
+    public int getEnrolledCount() {
+        return students.size();
+    }
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public String getTitle() { return title; }
@@ -47,7 +54,7 @@ public class Course {
     public void setSeats(int seats) { this.seats = seats; }
     public int getCredits() { return credits; }
     public String getCategory() { return category; }
-    public String getInstructor() { return instructor; } // Геттер преподавателя
+    public String getInstructor() { return instructor; }
     public Course getPrerequisite() { return prerequisite; }
     public Set<Student> getStudents() { return students; }
 }
