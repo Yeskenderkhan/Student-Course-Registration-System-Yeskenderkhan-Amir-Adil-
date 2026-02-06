@@ -22,21 +22,19 @@ public class Student {
             inverseJoinColumns = @JoinColumn(name = "course_id")
     )
     private List<Course> courses = new ArrayList<>();
-
     public Student() {}
     public Student(String name, String email) {
         this.name = name;
         this.email = email;
     }
-
-    // Подсчет кредитов
+    // Подсчет того сколько каждый курс сколько кредитов берет
     public int getCurrentCredits() {
         return courses.stream().mapToInt(Course::getCredits).sum();
     }
-
-    // Геттеры и сеттеры
+    // опять геттеры и сеттеры добавленин
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }
     public List<Course> getCourses() { return courses; }
 }
+// все норм
