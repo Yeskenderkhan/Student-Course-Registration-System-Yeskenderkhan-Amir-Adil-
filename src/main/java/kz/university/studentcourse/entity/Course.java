@@ -13,42 +13,38 @@ public class Course {
 
     private String title;
     private String description;
+    private int seats;      // Места
+    private int credits;    // Стоимость (3-4)
+    private String category; // Категория (Core, Math, etc.)
 
-    private int capacity; // Максимальный лимит (например, 15)
+    // Пререквизит (какой курс ОБЯЗАТЕЛЕН перед этим)
+    @OneToOne
+    private Course prerequisite;
 
-    // Связь ManyToMany, чтобы мы знали, кто записан на курс
     @ManyToMany(mappedBy = "courses", fetch = FetchType.EAGER)
     private Set<Student> students = new HashSet<>();
 
     public Course() {}
 
-    public Course(String title, String description, int capacity) {
+    public Course(String title, String description, int seats, int credits, String category, Course prerequisite) {
         this.title = title;
         this.description = description;
-        this.capacity = capacity;
+        this.seats = seats;
+        this.credits = credits;
+        this.category = category;
+        this.prerequisite = prerequisite;
     }
 
-    // Логика для шаблона: сколько мест занято?
-    public int getEnrolledCount() {
-        return students.size();
-    }
-
-    // Логика для шаблона: остались ли места?
-    public boolean hasSeats() {
-        return students.size() < capacity;
-    }
-
-    // Логика: набран ли минимум для старта (например, 60% мест)
-    public boolean isSuccess() {
-        return students.size() >= (capacity * 0.6);
-    }
+    public boolean hasSeats() { return students.size() < seats; }
 
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
-    public int getCapacity() { return capacity; }
-    public void setCapacity(int capacity) { this.capacity = capacity; }
+    public int getSeats() { return seats; }
+    public int getCredits() { return credits; }
+    public String getCategory() { return category; }
+    public Course getPrerequisite() { return prerequisite; }
     public Set<Student> getStudents() { return students; }
+    public void setSeats(int seats) { this.seats = seats; }
 }
