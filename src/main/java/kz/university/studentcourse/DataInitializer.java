@@ -12,77 +12,55 @@ public class DataInitializer {
     CommandLineRunner initDatabase(CourseRepository repository) {
         return args -> {
             if (repository.count() == 0) {
-                // ==========================================
-                // 1 YEAR (FRESHMAN) - NO PREREQUISITES
-                // ==========================================
+                // === MATH & CS (Base) ===
+                Course calc1 = repository.save(new Course("Calculus I", "Limits & Derivatives", 60, 5, "Mathematics", "Prof. Arman Suleimenov", null));
+                Course cs1 = repository.save(new Course("Intro to CS", "Binary & Logic", 100, 3, "Computer Science", "Alan Turing", null));
+                Course java1 = repository.save(new Course("Java Basics", "Variables & Loops", 80, 4, "Computer Science", "Dr. Sarah Connor", null));
+                Course py1 = repository.save(new Course("Python Start", "Scripting", 80, 4, "Computer Science", "Assel Nurgalieva", null));
 
-                // Math & Science
-                Course calc1 = repository.save(new Course("Calculus I", "Limits, Derivatives, Integrals", 60, 5, "Mathematics", "Prof. Arman Suleimenov", null));
-                Course physics1 = repository.save(new Course("Physics I", "Classical Mechanics", 50, 5, "Science", "Dr. Serik Bolatov", null));
-                Course chem = repository.save(new Course("General Chemistry", "Molecules and Atoms", 40, 4, "Science", "Elena Ivanova", null));
+                // === MATH (Advanced) - Requires Calc 1 ===
+                Course calc2 = repository.save(new Course("Calculus II", "Integrals", 40, 5, "Mathematics", "Prof. Arman Suleimenov", calc1));
+                Course linAlg = repository.save(new Course("Linear Algebra", "Matrices", 40, 4, "Mathematics", "Dr. Berik Serikov", calc1));
+                Course stats = repository.save(new Course("Statistics", "Probability", 50, 4, "Mathematics", "Olga Petrova", calc1));
 
-                // CS Basics
-                Course csInt = repository.save(new Course("Intro to CS", "Binary, Logic, History", 100, 3, "Computer Science", "Alan Turing", null));
-                Course java1 = repository.save(new Course("Java Programming I", "Variables, Loops, Methods", 80, 4, "Computer Science", "Dr. Sarah Connor", null));
-                Course py1 = repository.save(new Course("Python for Beginners", "Scripting basics", 80, 4, "Computer Science", "Assel Nurgalieva", null));
+                // === CS (Advanced) ===
+                Course java2 = repository.save(new Course("Java OOP", "Classes & Objects", 60, 5, "Computer Science", "Dr. Sarah Connor", java1));
+                Course algo = repository.save(new Course("Algorithms", "Trees & Graphs", 50, 5, "Computer Science", "Bekzat Tolegen", java1));
+                Course ds = repository.save(new Course("Data Science", "Pandas & AI", 40, 4, "Computer Science", "Assel Nurgalieva", py1));
+                Course spring = repository.save(new Course("Spring Boot", "Web Framework", 30, 6, "Computer Science", "Yeskender Khan", java2));
+                Course android = repository.save(new Course("Android Dev", "Kotlin Apps", 30, 5, "Computer Science", "Google Team", java2));
+                Course ai = repository.save(new Course("AI & ML", "Neural Networks", 25, 6, "Computer Science", "Andrew Ng", ds));
+                Course cyber = repository.save(new Course("Cyber Security", "Ethical Hacking", 30, 5, "Computer Science", "Mr. Robot", cs1));
 
-                // Humanities & Languages
-                Course eng1 = repository.save(new Course("Academic English", "Writing & Speaking", 40, 3, "Languages", "John Smith", null));
-                Course hist = repository.save(new Course("History of Kazakhstan", "From Khanate to Republic", 100, 3, "Humanities", "Prof. Kairat Akhmetov", null));
-                Course phil = repository.save(new Course("Philosophy", "Ethics and Logic", 60, 3, "Humanities", "Dr. Aliya Maratova", null));
-                Course econ1 = repository.save(new Course("Microeconomics", "Supply and Demand", 50, 3, "Economics", "Timur Batyrov", null));
+                // === MEDICINE (New!) ===
+                Course bio = repository.save(new Course("General Biology", "Cells & DNA", 60, 4, "Medicine", "Dr. House", null));
+                Course anat = repository.save(new Course("Human Anatomy", "Organs & Bones", 40, 5, "Medicine", "Dr. Strange", bio));
+                Course genetics = repository.save(new Course("Genetics", "CRISPR & Genes", 30, 5, "Medicine", "Dr. Watson", bio));
+                Course surgery = repository.save(new Course("Intro to Surgery", "Basic stitches", 20, 6, "Medicine", "Dr. Grey", anat));
 
-                // ==========================================
-                // 2 YEAR (SOPHOMORE) - REQUIRES YEAR 1
-                // ==========================================
+                // === LAW (New!) ===
+                Course law1 = repository.save(new Course("Intro to Law", "Constitution", 70, 3, "Law", "Saul Goodman", null));
+                Course civil = repository.save(new Course("Civil Law", "Contracts", 50, 4, "Law", "Harvey Specter", law1));
+                Course crim = repository.save(new Course("Criminal Law", "Crime & Punishment", 50, 4, "Law", "Matt Murdock", law1));
+                Course intLaw = repository.save(new Course("International Law", "UN & Treaties", 40, 4, "Law", "Amal Clooney", law1));
 
-                // Math Path (All require Calculus I)
-                Course calc2 = repository.save(new Course("Calculus II", "Multivariable Calculus", 40, 5, "Mathematics", "Prof. Arman Suleimenov", calc1));
-                Course linAlg = repository.save(new Course("Linear Algebra", "Vectors & Matrices", 45, 4, "Mathematics", "Dr. Berik Serikov", calc1));
-                Course stats = repository.save(new Course("Probability & Statistics", "Data Analysis", 50, 4, "Mathematics", "Olga Petrova", calc1));
+                // === ECONOMICS ===
+                Course micro = repository.save(new Course("Microeconomics", "Supply & Demand", 60, 3, "Economics", "Timur Batyrov", null));
+                Course macro = repository.save(new Course("Macroeconomics", "Global Economy", 50, 3, "Economics", "Elena Ivanova", micro));
+                Course finance = repository.save(new Course("Corporate Finance", "Stocks & Bonds", 40, 4, "Economics", "Warren Buffett", micro));
+                Course market = repository.save(new Course("Marketing", "Digital Ads", 50, 3, "Economics", "Steve Jobs", null));
 
-                // Physics Path
-                repository.save(new Course("Physics II", "Electromagnetism", 40, 5, "Science", "Dr. Serik Bolatov", physics1));
+                // === ARTS & HUMANITIES (New!) ===
+                Course hist = repository.save(new Course("History of KZ", "Ancient Times", 100, 3, "Humanities", "Prof. Akhmetov", null));
+                Course phil = repository.save(new Course("Philosophy", "Logic", 80, 3, "Humanities", "Dr. Watts", null));
+                Course psych = repository.save(new Course("Psychology", "The Mind", 70, 3, "Humanities", "Sigmund Freud", null));
+                Course art = repository.save(new Course("Art History", "Renaissance", 40, 3, "Arts", "Leonardo da Vinci", null));
+                Course music = repository.save(new Course("Music Theory", "Notes & Rhythm", 30, 3, "Arts", "Mozart", null));
 
-                // CS Path (Java)
-                Course java2 = repository.save(new Course("Java OOP", "Polymorphism & Inheritance", 60, 5, "Computer Science", "Dr. Sarah Connor", java1));
-                Course algo = repository.save(new Course("Algorithms & Data Structs", "Sorting, Trees, Graphs", 50, 5, "Computer Science", "Bekzat Tolegen", java1));
-                Course db = repository.save(new Course("Databases (SQL)", "PostgreSQL & Design", 60, 4, "Computer Science", "Daulet Kudaibergen", java1));
-
-                // CS Path (Python)
-                Course ds = repository.save(new Course("Data Science Intro", "Pandas & Visualization", 40, 4, "Computer Science", "Assel Nurgalieva", py1));
-
-                // Other
-                Course eng2 = repository.save(new Course("Technical Writing", "Documentation & Reports", 30, 3, "Languages", "Emily Blunt", eng1));
-                Course econ2 = repository.save(new Course("Macroeconomics", "Global Markets", 40, 3, "Economics", "Timur Batyrov", econ1));
-
-                // ==========================================
-                // 3 YEAR (JUNIOR) - HARD CORE
-                // ==========================================
-
-                // Requires Java OOP
-                Course spring = repository.save(new Course("Spring Boot Framework", "Enterprise Web Apps", 30, 6, "Computer Science", "Yeskender Khan", java2));
-                Course android = repository.save(new Course("Android Development", "Mobile Apps with Kotlin", 30, 5, "Computer Science", "Google Team", java2));
-
-                // Requires Algorithms
-                repository.save(new Course("Artificial Intelligence", "Search, Logic, Minimax", 25, 6, "Computer Science", "Dr. Geoffrey Hinton", algo));
-                repository.save(new Course("Cyber Security", "Ethical Hacking", 25, 5, "Computer Science", "Mr. Robot", algo));
-
-                // Requires Linear Algebra
-                repository.save(new Course("Computer Graphics", "3D Rendering & OpenGL", 20, 5, "Computer Science", "John Carmack", linAlg));
-
-                // Requires Data Science
-                repository.save(new Course("Machine Learning", "Neural Networks", 20, 6, "Computer Science", "Andrew Ng", ds));
-
-                // ==========================================
-                // 4 YEAR (SENIOR) - FINAL
-                // ==========================================
-
-                // Requires Spring Boot
-                repository.save(new Course("Microservices Arch", "Docker, K8s, Cloud", 15, 6, "Computer Science", "Martin Fowler", spring));
-
-                // Requires Statistics
-                repository.save(new Course("Big Data Analytics", "Hadoop & Spark", 20, 6, "Computer Science", "Matei Zaharia", stats));
+                // === SPORTS (New!) ===
+                repository.save(new Course("Physical Ed", "Gym & Fitness", 100, 2, "Sports", "Coach Carter", null));
+                repository.save(new Course("Football", "Team Strategy", 40, 2, "Sports", "Lionel Messi", null));
+                repository.save(new Course("Chess", "Strategy", 30, 2, "Sports", "Magnus Carlsen", null));
             }
         };
     }

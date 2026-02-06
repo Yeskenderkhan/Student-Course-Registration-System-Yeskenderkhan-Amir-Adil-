@@ -45,6 +45,7 @@ public class StudentController {
         return "redirect:/";
     }
 
+    // Метод получения свежих данных пользователя
     private Student getFreshUser(HttpSession session) {
         Student sessionUser = (Student) session.getAttribute("user");
         if (sessionUser == null) return null;
@@ -69,7 +70,6 @@ public class StudentController {
         return "help";
     }
 
-    // === ОБНОВЛЕННЫЙ МЕТОД С ПОИСКОМ ===
     @GetMapping("/courses")
     public String listCourses(Model model, HttpSession session, @RequestParam(required = false) String keyword) {
         Student user = getFreshUser(session);
@@ -77,14 +77,11 @@ public class StudentController {
 
         List<Course> courses;
         if (keyword != null && !keyword.isEmpty()) {
-            // Если есть слово в поиске - ищем в базе
             courses = courseRepo.searchCourses(keyword);
         } else {
-            // Иначе возвращаем все
             courses = courseRepo.findAll();
         }
 
-        // Группировка
         Map<String, List<Course>> groupedCourses = courses.stream()
                 .sorted(Comparator.comparing(Course::getId))
                 .collect(Collectors.groupingBy(Course::getCategory));
@@ -92,7 +89,7 @@ public class StudentController {
         model.addAttribute("groupedCourses", groupedCourses);
         model.addAttribute("student", user);
         model.addAttribute("currentCredits", user.getCurrentCredits());
-        model.addAttribute("keyword", keyword); // Возвращаем слово в форму, чтобы оно не исчезло
+        model.addAttribute("keyword", keyword);
         return "course_list";
     }
 
@@ -104,21 +101,35 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
-        // Проверки
-        if (user.getCurrentCredits() + course.getCredits() > 20) return "redirect:/courses?error=credits";
+        // 1. Проверка кредитов
+        if (user.getCurrentCredits() + course.getCredits() > 20) {
+            return "redirect:/courses?error=credits";
+        }
 
-        // Главная проверка: если есть пререквизит и студент его НЕ брал
-        if (course.getPrerequisite() != null && !user.getCourses().contains(course.getPrerequisite())) {
-            return "redirect:/courses?error=prereq";
+        // 2. УМНАЯ ПРОВЕРКА ПРЕРЕКВИЗИТОВ
+        if (course.getPrerequisite() != null) {
+            boolean hasPrereq = user.getCourses().contains(course.getPrerequisite());
+
+            // Если студента НЕТ пререквизита -> Блок
+            if (!hasPrereq) {
+                return "redirect:/courses?error=prereq";
+            }
+
+            if (hasPrereq) {
+                return "redirect:/courses?error=simultaneous";
+            }
         }
 
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
-            course.getStudents().add(user);
+            course.getStudents().add(user); // Важно для связи
             course.setSeats(course.getSeats() - 1);
+
             studentRepo.save(user);
             courseRepo.save(course);
         }
+
         return "redirect:/courses";
     }
+
 }
