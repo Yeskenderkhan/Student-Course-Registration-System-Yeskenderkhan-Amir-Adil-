@@ -22,33 +22,55 @@ public class StudentController {
         this.courseRepo = courseRepo;
     }
 
-    // 1. Страница логина
+    // === LOGIN PAGE ===
     @GetMapping("/")
     public String showLogin() {
         return "login";
     }
 
-    // 2. Обработка входа (Простая имитация безопасности)
     @PostMapping("/login")
     public String login(@RequestParam String email, @RequestParam String name, HttpSession session) {
         Student student = studentRepo.findByEmail(email);
         if (student == null) {
-            // Если студента нет - создаем нового
             student = new Student(name, email);
             studentRepo.save(student);
         }
-        // Сохраняем ID студента в сессии (он "залогинен")
         session.setAttribute("user", student);
-        return "redirect:/courses";
+        return "redirect:/home";
     }
 
-    // 3. Список курсов
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
+    }
+
+    // === MENU TABS ===
+
+    @GetMapping("/home")
+    public String home(HttpSession session, Model model) {
+        Student user = checkSession(session);
+        if (user == null) return "redirect:/";
+
+        model.addAttribute("student", user);
+        return "home"; // Новая страница "Home"
+    }
+
+    @GetMapping("/help")
+    public String help(HttpSession session, Model model) {
+        Student user = checkSession(session);
+        if (user == null) return "redirect:/";
+
+        model.addAttribute("student", user);
+        return "help"; // Новая страница "Help"
+    }
+
     @GetMapping("/courses")
     public String listCourses(Model model, HttpSession session) {
-        Student user = (Student) session.getAttribute("user");
-        if (user == null) return "redirect:/"; // Если не залогинен - на выход
+        Student user = checkSession(session);
+        if (user == null) return "redirect:/";
 
-        // Обновляем данные студента из БД, чтобы видеть актуальные курсы
+        // Обновляем данные студента из БД
         user = studentRepo.findById(user.getId()).orElse(null);
 
         List<Course> allCourses = courseRepo.findAll();
@@ -58,32 +80,31 @@ public class StudentController {
         return "course_list";
     }
 
-    // 4. Логика записи на курс (САМОЕ ВАЖНОЕ)
+    // === LOGIC ===
+
     @PostMapping("/enroll/{courseId}")
     public String enroll(@PathVariable Long courseId, HttpSession session) {
-        Student user = (Student) session.getAttribute("user");
+        Student user = checkSession(session);
         if (user == null) return "redirect:/";
 
         Course course = courseRepo.findById(courseId).orElse(null);
         user = studentRepo.findById(user.getId()).orElse(null);
 
-        // Проверяем: есть ли места И не записан ли уже студент
-        if (course != null && user != null && course.getSeats() > 0 && !user.getCourses().contains(course)) {
-            // Уменьшаем количество мест
-            course.setSeats(course.getSeats() - 1);
-            courseRepo.save(course);
+        if (course != null && user != null) {
+            // Проверка: есть ли места И не записан ли уже
+            if (course.hasSeats() && !user.getCourses().contains(course)) {
+                user.getCourses().add(course);
+                course.getStudents().add(user); // Важно для связи ManyToMany
 
-            // Добавляем курс студенту
-            user.getCourses().add(course);
-            studentRepo.save(user);
+                studentRepo.save(user);
+                courseRepo.save(course);
+            }
         }
-
         return "redirect:/courses";
     }
 
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
+    // Вспомогательный метод проверки входа
+    private Student checkSession(HttpSession session) {
+        return (Student) session.getAttribute("user");
     }
 }

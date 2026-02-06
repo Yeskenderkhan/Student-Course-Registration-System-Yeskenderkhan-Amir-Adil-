@@ -1,54 +1,65 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Available Courses</title>
+    <title>All Courses</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body class="container mt-5">
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Welcome, <span th:text="${student.name}"></span>!</h2>
-    <a href="/logout" class="btn btn-outline-danger">Logout</a>
-</div>
+<body class="bg-light">
 
-<h4>Available Courses</h4>
-<table class="table table-striped shadow-sm">
-    <thead class="table-dark">
-    <tr>
-        <th>Course Name</th>
-        <th>Description</th>
-        <th>Seats Left</th>
-        <th>Action</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="c : ${courses}">
-        <td th:text="${c.title}">Java</td>
-        <td th:text="${c.description}">Basics</td>
-        <td>
-                    <span th:text="${c.seats}"
-                          th:class="${c.seats < 3} ? 'badge bg-danger' : 'badge bg-success'">
-                    </span>
-        </td>
-        <td>
-            <form th:if="${c.seats > 0 and !student.courses.contains(c)}"
-                  th:action="@{/enroll/{id}(id=${c.id})}" method="post">
-                <button type="submit" class="btn btn-sm btn-primary">Enroll</button>
-            </form>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="#">University Portal</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/courses">Courses</a></li>
+                <li class="nav-item"><a class="nav-link" href="/help">Help Center</a></li>
+            </ul>
+            <span class="navbar-text text-white me-3">
+                    Signed in as: <strong th:text="${student.name}"></strong>
+                </span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+        </div>
+    </div>
+</nav>
 
-            <span th:if="${student.courses.contains(c)}" class="text-success fw-bold">✅ Enrolled</span>
-            <span th:if="${c.seats == 0 and !student.courses.contains(c)}" class="text-muted">Full</span>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div class="container">
+    <h2 class="mb-4">Available Courses</h2>
 
-<div class="mt-5">
-    <h4>Your Registered Courses:</h4>
-    <ul class="list-group">
-        <li class="list-group-item" th:each="myC : ${student.courses}">
-            <strong th:text="${myC.title}"></strong>
-        </li>
-    </ul>
+    <div class="row">
+        <div class="col-md-4 mb-4" th:each="c : ${courses}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${c.title}">Course Title</h5>
+                    <p class="card-text text-muted" th:text="${c.description}">Desc</p>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Enrollment Status:</small>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar"
+                                 th:style="'width:' + (${c.enrolledCount} * 100 / ${c.capacity}) + '%'"
+                                 th:classappend="${c.enrolledCount == c.capacity} ? 'bg-danger' : (${c.success} ? 'bg-success' : 'bg-warning')">
+                                <span th:text="${c.enrolledCount} + '/' + ${c.capacity}"></span>
+                            </div>
+                        </div>
+                        <small th:if="${c.success}" class="text-success fw-bold">Group Formed! ✅</small>
+                        <small th:if="${!c.success and c.hasSeats()}" class="text-warning fw-bold">Filling up... ⏳</small>
+                        <small th:if="${!c.hasSeats()}" class="text-danger fw-bold">Class Full ⛔</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <form th:if="${c.hasSeats() and !student.courses.contains(c)}"
+                              th:action="@{/enroll/{id}(id=${c.id})}" method="post">
+                            <button type="submit" class="btn btn-primary w-100">Enroll Now</button>
+                        </form>
+
+                        <button disabled th:if="${student.courses.contains(c)}" class="btn btn-success w-100">You are Enrolled</button>
+                        <button disabled th:if="${!c.hasSeats() and !student.courses.contains(c)}" class="btn btn-secondary w-100">Closed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>
