@@ -1,0 +1,4 @@
+almost the entire project was originally done in a different file, but after a while we discovered the difficulty that at the very beginning of the project creation we did not install the maven and its accessories, and then it was simply inconvenient and difficult to add them to an existing project
+. Due to this, we created other guitabs and projects in them to practice and experiment as in in general, the maven works in general and how to use
+it further. everything that we had on hand from different projects, we combined it all into one github, which was originally the very first, but in order to put a new project in it, which is the best version among all that we had, we had to delete the very first project from this first github and all the commits that were made in it, which is about 50-60, were erased
+. We really worked on the entire project during all these weeks, this is not the work that was done in a couple of days.
