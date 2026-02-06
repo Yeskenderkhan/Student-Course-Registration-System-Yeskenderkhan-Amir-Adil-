@@ -45,7 +45,6 @@ public class StudentController {
         return "redirect:/";
     }
 
-    // === FIX: Всегда обновляем студента из базы ===
     private Student getFreshUser(HttpSession session) {
         Student sessionUser = (Student) session.getAttribute("user");
         if (sessionUser == null) return null;
@@ -54,30 +53,12 @@ public class StudentController {
 
     @GetMapping("/home")
     public String home(HttpSession session, Model model) {
-        Student user = getFreshUser(session); // Получаем свежие данные
+        Student user = getFreshUser(session);
         if (user == null) return "redirect:/";
 
         model.addAttribute("student", user);
         model.addAttribute("credits", user.getCurrentCredits());
         return "home";
-    }
-
-    @GetMapping("/courses")
-    public String listCourses(Model model, HttpSession session) {
-        Student user = getFreshUser(session);
-        if (user == null) return "redirect:/";
-
-        List<Course> allCourses = courseRepo.findAll();
-
-        // Группируем курсы по категориям (CS, Math, etc.)
-        Map<String, List<Course>> groupedCourses = allCourses.stream()
-                .sorted(Comparator.comparing(Course::getId)) // Сортировка по ID
-                .collect(Collectors.groupingBy(Course::getCategory));
-
-        model.addAttribute("groupedCourses", groupedCourses);
-        model.addAttribute("student", user);
-        model.addAttribute("currentCredits", user.getCurrentCredits());
-        return "course_list";
     }
 
     @GetMapping("/help")
@@ -88,7 +69,33 @@ public class StudentController {
         return "help";
     }
 
-    // === ЛОГИКА ЗАПИСИ ===
+    // === ОБНОВЛЕННЫЙ МЕТОД С ПОИСКОМ ===
+    @GetMapping("/courses")
+    public String listCourses(Model model, HttpSession session, @RequestParam(required = false) String keyword) {
+        Student user = getFreshUser(session);
+        if (user == null) return "redirect:/";
+
+        List<Course> courses;
+        if (keyword != null && !keyword.isEmpty()) {
+            // Если есть слово в поиске - ищем в базе
+            courses = courseRepo.searchCourses(keyword);
+        } else {
+            // Иначе возвращаем все
+            courses = courseRepo.findAll();
+        }
+
+        // Группировка
+        Map<String, List<Course>> groupedCourses = courses.stream()
+                .sorted(Comparator.comparing(Course::getId))
+                .collect(Collectors.groupingBy(Course::getCategory));
+
+        model.addAttribute("groupedCourses", groupedCourses);
+        model.addAttribute("student", user);
+        model.addAttribute("currentCredits", user.getCurrentCredits());
+        model.addAttribute("keyword", keyword); // Возвращаем слово в форму, чтобы оно не исчезло
+        return "course_list";
+    }
+
     @PostMapping("/enroll/{courseId}")
     public String enroll(@PathVariable Long courseId, HttpSession session) {
         Student user = getFreshUser(session);
@@ -97,27 +104,21 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
-        // 1. Проверка лимита (20 кредитов)
-        if (user.getCurrentCredits() + course.getCredits() > 20) {
-            return "redirect:/courses?error=credits";
-        }
+        // Проверки
+        if (user.getCurrentCredits() + course.getCredits() > 20) return "redirect:/courses?error=credits";
 
-        // 2. Проверка пререквизитов (Есть ли базовый курс?)
+        // Главная проверка: если есть пререквизит и студент его НЕ брал
         if (course.getPrerequisite() != null && !user.getCourses().contains(course.getPrerequisite())) {
             return "redirect:/courses?error=prereq";
         }
 
-        // 3. Стандартные проверки (места и повторная запись)
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
-            course.getStudents().add(user); // Для связи
-            // Важно: уменьшаем места
+            course.getStudents().add(user);
             course.setSeats(course.getSeats() - 1);
-
             studentRepo.save(user);
             courseRepo.save(course);
         }
-
         return "redirect:/courses";
     }
 }
