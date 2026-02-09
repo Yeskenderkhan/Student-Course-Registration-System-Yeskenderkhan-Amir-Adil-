@@ -22,7 +22,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <h2 class="fw-bold">Welcome back, <span class="text-primary" th:text="${student.name}">Student</span>! 👋</h2>
-            <p class="text-muted">Here is your academic overview for Spring 2026.</p>
+            <p class="text-muted">Spring 2026 Semester Overview</p>
         </div>
     </div>
 
@@ -42,14 +42,31 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h5 class="card-title fw-bold">Academic Load</h5>
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Credits Used</span>
-                        <span class="fw-bold" th:text="${credits} + '/20'"></span>
+
+                    <div class="d-flex justify-content-between mb-1 align-items-end">
+                        <span class="small text-muted">Progress</span>
+                        <div>
+                                <span th:class="${credits < 18 ? 'text-warning fw-bold fs-4' : 'text-success fw-bold fs-4'}"
+                                      th:text="${credits}">0</span>
+                            <span class="text-muted small">/ 30 cr</span>
+                        </div>
                     </div>
-                    <div class="progress mb-3" style="height: 10px;">
-                        <div class="progress-bar bg-primary" role="progressbar"
-                             th:style="'width: ' + (${credits} * 5) + '%'"></div>
+
+                    <div class="progress mb-2" style="height: 10px;">
+                        <div th:class="${credits < 18 ? 'progress-bar bg-warning progress-bar-striped' : 'progress-bar bg-success'}"
+                             role="progressbar"
+                             th:style="'width: ' + (${credits} * 3.33) + '%'"></div>
                     </div>
+
+                    <div class="d-flex justify-content-between small text-muted mb-3">
+                        <span>Min: 18</span>
+                        <span>Max: 30</span>
+                    </div>
+
+                    <div th:if="${credits < 18}" class="alert alert-warning py-2 small mb-3">
+                        <i class="bi bi-exclamation-circle"></i> You need at least <strong>18 credits</strong> to pass.
+                    </div>
+
                     <a href="/courses" class="btn btn-outline-primary w-100">Manage Courses</a>
                 </div>
             </div>
@@ -72,7 +89,7 @@
                         <tr>
                             <th>Course</th>
                             <th>Instructor</th>
-                            <th>Schedule</th>
+                            <th>Time</th>
                             <th>Credits</th>
                         </tr>
                         </thead>
@@ -99,6 +116,5 @@
         </div>
     </div>
 </div>
-
 </body>
 </html>

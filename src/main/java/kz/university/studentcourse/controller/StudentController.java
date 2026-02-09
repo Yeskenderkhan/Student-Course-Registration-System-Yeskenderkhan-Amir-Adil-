@@ -100,9 +100,18 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
-        // Проверка лимита кредитов
-        if (user.getCurrentCredits() + course.getCredits() > 20) {
+        // === ИЗМЕНЕНИЕ: ЛИМИТ ТЕПЕРЬ 30 ===
+        if (user.getCurrentCredits() + course.getCredits() > 30) {
             return "redirect:/courses?error=credits";
+        }
+
+        // Проверка пререквизитов
+        if (course.getPrerequisite() != null) {
+            boolean hasPrereq = user.getCourses().contains(course.getPrerequisite());
+            if (!hasPrereq) return "redirect:/courses?error=prereq";
+
+            // Блокировка одновременного взятия (нельзя брать Calc 2, если Calc 1 только взят)
+            if (hasPrereq) return "redirect:/courses?error=simultaneous";
         }
 
         // Запись
