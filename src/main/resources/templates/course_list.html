@@ -3,21 +3,21 @@
 <head>
     <title>Course Catalog</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
     <div class="container">
-        <a class="navbar-brand" href="#">University Portal</a>
+        <a class="navbar-brand fw-bold" href="#">🎓 University Portal</a>
         <div class="navbar-nav me-auto">
-            <a class="nav-link" href="/home">Home</a>
-            <a class="nav-link active" href="/courses">Courses</a>
-            <a class="nav-link" href="/help">Help</a>
+            <a class="nav-link" href="/home">Dashboard</a>
+            <a class="nav-link active" href="/courses">Catalog</a>
         </div>
         <span class="navbar-text text-white me-3">
                 Credits: <strong th:text="${currentCredits} + '/20'"></strong>
             </span>
-        <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+        <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
     </div>
 </nav>
 
@@ -25,80 +25,94 @@
 
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h2 class="mb-0">Course Catalog</h2>
+            <h2 class="mb-0 fw-bold text-dark">Course Catalog</h2>
+            <p class="text-muted">Select your courses for Spring 2026</p>
         </div>
         <div class="col-md-6">
             <form action="/courses" method="get" class="d-flex">
                 <input class="form-control me-2" type="search" name="keyword"
-                       placeholder="Search by Title or Instructor..." th:value="${keyword}">
-                <button class="btn btn-primary" type="submit">Search</button>
+                       placeholder="Search Title or Instructor..." th:value="${keyword}">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
                 <a href="/courses" class="btn btn-outline-secondary ms-2">Reset</a>
             </form>
         </div>
     </div>
 
-    <div th:if="${param.error == 'credits'}" class="alert alert-danger">
-        <strong>Failed!</strong> You cannot exceed 20 credits.
+    <div th:if="${param.error == 'credits'}" class="alert alert-danger shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill"></i> <strong>Failed!</strong> You cannot exceed 20 credits.
+    </div>
+    <div th:if="${param.error == 'simultaneous'}" class="alert alert-warning shadow-sm">
+        <i class="bi bi-hourglass-split"></i> <strong>Wait!</strong> You cannot take a course and its prerequisite at the same time.
     </div>
 
     <div th:each="entry : ${groupedCourses}">
-        <h4 class="text-primary mt-4 border-bottom pb-2" th:text="${entry.key}">Topic</h4>
+        <h4 class="text-primary mt-5 border-bottom pb-2" th:text="${entry.key}">Topic</h4>
 
         <div class="row">
             <div class="col-md-6 col-lg-4 mb-4" th:each="c : ${entry.value}">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card h-100 shadow-sm border-0" style="transition: transform 0.2s;">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <h5 class="card-title mb-1" th:text="${c.title}">Title</h5>
-                                <small class="text-primary fw-bold" th:text="${c.instructor}">Instructor</small>
+                                <h5 class="card-title fw-bold mb-0" th:text="${c.title}">Title</h5>
+                                <small class="text-primary fw-bold">
+                                    <i class="bi bi-person-badge"></i> <span th:text="${c.instructor}"></span>
+                                </small>
                             </div>
-                            <span class="badge bg-info text-dark" th:text="${c.credits} + ' cr'"></span>
+                            <span class="badge bg-dark rounded-pill" th:text="${c.credits} + ' CR'"></span>
                         </div>
 
-                        <p class="card-text text-muted small mt-2" th:text="${c.description}"></p>
+                        <p class="card-text text-muted small fst-italic mb-3" th:text="${c.description}"></p>
 
-                        <div class="mt-3">
-
-                            <div th:if="${student.courses.contains(c)}">
-                                <button disabled class="btn btn-success w-100 fw-bold">✅ You are Enrolled</button>
+                        <div class="bg-light p-2 rounded mb-3 small border">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-calendar-week me-2 text-secondary"></i>
+                                <span th:text="${c.schedule}">Mon 10:00</span>
                             </div>
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-clock-history me-2 text-secondary"></i>
+                                <span th:text="${c.workload}">20 Lec / 10 Lab</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-hourglass-bottom me-2 text-secondary"></i>
+                                <span th:text="${c.duration}">15 Weeks</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button disabled th:if="${student.courses.contains(c)}"
+                                    class="btn btn-success fw-bold"><i class="bi bi-check-circle-fill"></i> Enrolled</button>
 
                             <div th:if="${!student.courses.contains(c) and c.prerequisite != null and !student.courses.contains(c.prerequisite)}">
-                                <button disabled class="btn btn-secondary w-100" style="opacity: 0.7;">🔒 Locked</button>
+                                <button disabled class="btn btn-secondary w-100 opacity-75"><i class="bi bi-lock-fill"></i> Locked</button>
                                 <div class="text-danger small text-center mt-1 fw-bold">
-                                    Must take "<span th:text="${c.prerequisite?.title}"></span>" first!
+                                    Requires: <span th:text="${c.prerequisite?.title}"></span>
                                 </div>
                             </div>
 
                             <div th:if="${!student.courses.contains(c) and c.prerequisite != null and student.courses.contains(c.prerequisite)}">
-                                <button disabled class="btn btn-warning w-100 text-dark" style="opacity: 0.8;">⏳ Pending</button>
+                                <button disabled class="btn btn-warning w-100 text-dark"><i class="bi bi-hourglass-split"></i> Pending</button>
                                 <div class="text-warning small text-center mt-1 fw-bold">
-                                    Finish "<span th:text="${c.prerequisite?.title}"></span>" first!
+                                    Finish <span th:text="${c.prerequisite?.title}"></span> first
                                 </div>
                             </div>
 
-                            <div th:if="${!student.courses.contains(c)
-                                            and (c.prerequisite == null)
-                                            and (student.currentCredits + c.credits > 20)}">
-                                <button disabled class="btn btn-danger w-100">⛔ Not enough credits</button>
-                            </div>
+                            <button disabled th:if="${!student.courses.contains(c) and c.prerequisite == null and (student.currentCredits + c.credits > 20)}"
+                                    class="btn btn-danger"><i class="bi bi-x-circle"></i> Credit Limit</button>
 
-                            <form th:if="${c.hasSeats()
-                                              and !student.courses.contains(c)
-                                              and (student.currentCredits + c.credits <= 20)
-                                              and (c.prerequisite == null)}"
+                            <form th:if="${c.hasSeats() and !student.courses.contains(c) and (student.currentCredits + c.credits <= 20) and (c.prerequisite == null)}"
                                   th:action="@{/enroll/{id}(id=${c.id})}" method="post">
-                                <button type="submit" class="btn btn-primary w-100 shadow-sm">
-                                    Enroll (<span th:text="${c.credits}"></span> cr)
+                                <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
+                                    Enroll Now
                                 </button>
                             </form>
 
-                            <div th:if="${!c.hasSeats() and !student.courses.contains(c)}">
-                                <button disabled class="btn btn-danger w-100">Full Class</button>
-                            </div>
+                            <button disabled th:if="${!c.hasSeats() and !student.courses.contains(c)}"
+                                    class="btn btn-danger">Class Full</button>
                         </div>
-
+                    </div>
+                    <div class="card-footer bg-white border-0 text-end">
+                        <small class="text-muted" th:text="${c.seats} + ' seats left'"></small>
                     </div>
                 </div>
             </div>
