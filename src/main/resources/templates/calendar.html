@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Academic Calendar</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .calendar-day {
+            height: 100px;
+            border: 1px solid #dee2e6;
+            background-color: #fff;
+            position: relative;
+        }
+        .calendar-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+        .today {
+            background-color: #e8f4ff !important;
+            border: 2px solid #0d6efd !important;
+        }
+        .today .date-num {
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+        }
+        .date-num {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-weight: bold;
+        }
+        .event-badge {
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 25px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">🎓 University Portal</a>
+        <div class="navbar-nav me-auto">
+            <a class="nav-link" href="/home">Dashboard</a>
+            <a class="nav-link" href="/courses">Catalog</a>
+            <a class="nav-link" href="/grades">Grades</a>
+            <a class="nav-link active" href="/calendar">Calendar</a>
+        </div>
+        <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+</nav>
+
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">February 2026</h2>
+        <div>
+            <button class="btn btn-outline-secondary me-1"><i class="bi bi-chevron-left"></i></button>
+            <button class="btn btn-outline-secondary"><i class="bi bi-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col calendar-header text-danger">Sun</div>
+                <div class="col calendar-header">Mon</div>
+                <div class="col calendar-header">Tue</div>
+                <div class="col calendar-header">Wed</div>
+                <div class="col calendar-header">Thu</div>
+                <div class="col calendar-header">Fri</div>
+                <div class="col calendar-header">Sat</div>
+            </div>
+
+            <div class="row g-0">
+                <div class="col calendar-day" th:classappend="${currentDay == 1} ? 'today' : ''">
+                    <span class="date-num">1</span>
+                </div>
+                <div class="col calendar-day" th:classappend="${currentDay == 2} ? 'today' : ''">
+                    <span class="date-num">2</span>
+                    <span class="badge bg-success event-badge">Term Start</span>
+                </div>
+                <div class="col calendar-day" th:classappend="${currentDay == 3} ? 'today' : ''"><span class="date-num">3</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 4} ? 'today' : ''"><span class="date-num">4</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 5} ? 'today' : ''"><span class="date-num">5</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 6} ? 'today' : ''"><span class="date-num">6</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 7} ? 'today' : ''"><span class="date-num">7</span></div>
+            </div>
+
+            <div class="row g-0">
+                <div class="col calendar-day" th:classappend="${currentDay == 8} ? 'today' : ''"><span class="date-num">8</span></div>
+
+                <div class="col calendar-day" th:classappend="${currentDay == 9} ? 'today' : ''">
+                    <span class="date-num">9</span>
+                    <span class="badge bg-primary event-badge">Add/Drop Deadline</span>
+                </div>
+
+                <div class="col calendar-day" th:classappend="${currentDay == 10} ? 'today' : ''"><span class="date-num">10</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 11} ? 'today' : ''"><span class="date-num">11</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 12} ? 'today' : ''"><span class="date-num">12</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 13} ? 'today' : ''"><span class="date-num">13</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 14} ? 'today' : ''"><span class="date-num">14</span></div>
+            </div>
+
+            <div class="row g-0">
+                <div class="col calendar-day" th:classappend="${currentDay == 15} ? 'today' : ''"><span class="date-num">15</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 16} ? 'today' : ''"><span class="date-num">16</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 17} ? 'today' : ''"><span class="date-num">17</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 18} ? 'today' : ''"><span class="date-num">18</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 19} ? 'today' : ''"><span class="date-num">19</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 20} ? 'today' : ''">
+                    <span class="date-num">20</span>
+                    <span class="badge bg-warning text-dark event-badge">Tuition Due</span>
+                </div>
+                <div class="col calendar-day" th:classappend="${currentDay == 21} ? 'today' : ''"><span class="date-num">21</span></div>
+            </div>
+
+            <div class="row g-0">
+                <div class="col calendar-day" th:classappend="${currentDay == 22} ? 'today' : ''"><span class="date-num">22</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 23} ? 'today' : ''"><span class="date-num">23</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 24} ? 'today' : ''"><span class="date-num">24</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 25} ? 'today' : ''"><span class="date-num">25</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 26} ? 'today' : ''"><span class="date-num">26</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 27} ? 'today' : ''"><span class="date-num">27</span></div>
+                <div class="col calendar-day" th:classappend="${currentDay == 28} ? 'today' : ''"><span class="date-num">28</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

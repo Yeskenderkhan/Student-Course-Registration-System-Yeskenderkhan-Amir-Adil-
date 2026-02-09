@@ -125,4 +125,40 @@ public class StudentController {
         }
         return "redirect:/courses";
     }
+// ... (предыдущий код метода enroll)
+
+    // === НОВАЯ СТРАНИЦА: ОЦЕНКИ ===
+    @GetMapping("/grades")
+    public String grades(Model model, HttpSession session) {
+        Student user = getFreshUser(session);
+        if (user == null) return "redirect:/";
+
+        model.addAttribute("student", user);
+        // Мы просто показываем курсы студента.
+        // В реальном проекте тут была бы отдельная таблица Grade,
+        // но для MVP мы покажем список курсов со статусом "In Progress".
+        return "grades";
+    }
+
+    // === НОВАЯ СТРАНИЦА: КАЛЕНДАРЬ (Февраль 2026) ===
+    @GetMapping("/calendar")
+    public String calendar(Model model, HttpSession session) {
+        Student user = getFreshUser(session);
+        if (user == null) return "redirect:/";
+
+        model.addAttribute("student", user);
+
+        // Получаем текущую дату сервера
+        // Если у тебя на компьютере сейчас 2026 год, он покажет верно.
+        // Если 2025 - он подсветит число, но год будет реальный системный.
+        // Чтобы симулировать именно 9 февраля для демо, можно раскомментировать строку ниже:
+        // java.time.LocalDate today = java.time.LocalDate.of(2026, 2, 9);
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        model.addAttribute("currentDay", today.getDayOfMonth());
+        model.addAttribute("currentMonth", today.getMonth());
+
+        return "calendar";
+    }
 }
