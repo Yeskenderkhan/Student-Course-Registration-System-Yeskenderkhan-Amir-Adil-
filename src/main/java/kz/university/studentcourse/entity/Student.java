@@ -1,8 +1,8 @@
 package kz.university.studentcourse.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "students")
@@ -12,8 +12,14 @@ public class Student {
     private Long id;
 
     private String name;
-    @Column(unique = true)
     private String email;
+
+    // Новые поля для регистрации
+    private String password;
+    private String major;        // Специальность (Computer Science)
+    private String academicYear; // Курс (Freshman, Senior...)
+
+    private int currentCredits;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -21,20 +27,40 @@ public class Student {
             joinColumns = @JoinColumn(name = "student_id"),
             inverseJoinColumns = @JoinColumn(name = "course_id")
     )
-    private List<Course> courses = new ArrayList<>();
+    private Set<Course> courses = new HashSet<>();
+
     public Student() {}
-    public Student(String name, String email) {
+
+    // Конструктор для регистрации
+    public Student(String name, String email, String password, String major, String academicYear) {
         this.name = name;
         this.email = email;
+        this.password = password;
+        this.major = major;
+        this.academicYear = academicYear;
+        this.currentCredits = 0;
     }
-    // Подсчет того сколько каждый курс сколько кредитов берет
-    public int getCurrentCredits() {
-        return courses.stream().mapToInt(Course::getCredits).sum();
-    }
-    // опять геттеры и сеттеры добавленин
+
+    // Геттеры и Сеттеры
     public Long getId() { return id; }
+
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
     public String getEmail() { return email; }
-    public List<Course> getCourses() { return courses; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
+
+    public String getAcademicYear() { return academicYear; }
+    public void setAcademicYear(String academicYear) { this.academicYear = academicYear; }
+
+    public int getCurrentCredits() { return currentCredits; }
+    public void setCurrentCredits(int currentCredits) { this.currentCredits = currentCredits; }
+
+    public Set<Course> getCourses() { return courses; }
 }
-// все норм
