@@ -41,7 +41,6 @@ public class StudentController {
     public String login(@RequestParam String email, @RequestParam String password, HttpSession session) {
         Student student = studentRepo.findByEmail(email);
 
-        // Проверяем пароль
         if (student != null && student.getPassword().equals(password)) {
             session.setAttribute("user", student);
             return "redirect:/home";
@@ -128,7 +127,7 @@ public class StudentController {
     }
 
     // ==========================================
-    // 3. ЛОГИКА ЗАПИСИ (ENROLL / DROP)
+    // 3. ЗАПИСЬ (ENROLL / DROP)
     // ==========================================
 
     @PostMapping("/enroll/{courseId}")
@@ -138,7 +137,6 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
-        // Проверки
         if (user.getCurrentCredits() + course.getCredits() > 30) return "redirect:/courses?error=credits";
 
         if (course.getPrerequisite() != null) {
@@ -153,7 +151,6 @@ public class StudentController {
             }
         }
 
-        // Запись
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
             course.getStudents().add(user);
@@ -248,7 +245,8 @@ public class StudentController {
                     dailyEvents.add(new CalendarEvent(c.getTitle(), time, "bg-primary"));
                 }
             }
-            if (day == 9) dailyEvents.add(new CalendarEvent("Add/Drop End", "", "bg-danger"));
+            // ЗДЕСЬ РАНЬШЕ БЫЛ "Add/Drop End". Я ЕГО УДАЛИЛ.
+
             scheduleMap.put(day, dailyEvents);
         }
 
