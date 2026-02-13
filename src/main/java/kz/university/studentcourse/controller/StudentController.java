@@ -137,6 +137,7 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
+        // Проверки
         if (user.getCurrentCredits() + course.getCredits() > 30) return "redirect:/courses?error=credits";
 
         if (course.getPrerequisite() != null) {
@@ -151,10 +152,15 @@ public class StudentController {
             }
         }
 
+        // Запись
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
             course.getStudents().add(user);
             course.setSeats(course.getSeats() - 1);
+
+            // === ИСПРАВЛЕНИЕ: ОБНОВЛЯЕМ КРЕДИТЫ ===
+            user.setCurrentCredits(user.getCurrentCredits() + course.getCredits());
+            // ======================================
 
             studentRepo.save(user);
             courseRepo.save(course);
@@ -173,6 +179,10 @@ public class StudentController {
             user.getCourses().remove(course);
             course.getStudents().remove(user);
             course.setSeats(course.getSeats() + 1);
+
+            // === ИСПРАВЛЕНИЕ: ВОЗВРАЩАЕМ КРЕДИТЫ ===
+            user.setCurrentCredits(user.getCurrentCredits() - course.getCredits());
+            // =======================================
 
             studentRepo.save(user);
             courseRepo.save(course);
@@ -245,8 +255,6 @@ public class StudentController {
                     dailyEvents.add(new CalendarEvent(c.getTitle(), time, "bg-primary"));
                 }
             }
-            // ЗДЕСЬ РАНЬШЕ БЫЛ "Add/Drop End". Я ЕГО УДАЛИЛ.
-
             scheduleMap.put(day, dailyEvents);
         }
 
