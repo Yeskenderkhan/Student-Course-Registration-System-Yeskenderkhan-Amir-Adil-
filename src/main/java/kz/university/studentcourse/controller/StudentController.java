@@ -137,7 +137,6 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
-        // Проверки
         if (user.getCurrentCredits() + course.getCredits() > 30) return "redirect:/courses?error=credits";
 
         if (course.getPrerequisite() != null) {
@@ -152,15 +151,12 @@ public class StudentController {
             }
         }
 
-        // Запись
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
             course.getStudents().add(user);
             course.setSeats(course.getSeats() - 1);
 
-            // === ИСПРАВЛЕНИЕ: ОБНОВЛЯЕМ КРЕДИТЫ ===
             user.setCurrentCredits(user.getCurrentCredits() + course.getCredits());
-            // ======================================
 
             studentRepo.save(user);
             courseRepo.save(course);
@@ -180,9 +176,7 @@ public class StudentController {
             course.getStudents().remove(user);
             course.setSeats(course.getSeats() + 1);
 
-            // === ИСПРАВЛЕНИЕ: ВОЗВРАЩАЕМ КРЕДИТЫ ===
             user.setCurrentCredits(user.getCurrentCredits() - course.getCredits());
-            // =======================================
 
             studentRepo.save(user);
             courseRepo.save(course);
@@ -226,7 +220,7 @@ public class StudentController {
     }
 
     // ==========================================
-    // 5. GRADES & CALENDAR
+    // 5. GRADES & CALENDAR (С СОРТИРОВКОЙ)
     // ==========================================
 
     @GetMapping("/grades")
@@ -255,6 +249,12 @@ public class StudentController {
                     dailyEvents.add(new CalendarEvent(c.getTitle(), time, "bg-primary"));
                 }
             }
+
+            // === ВОТ ЭТА МАГИЯ СОРТИРУЕТ ПО ВРЕМЕНИ ===
+            // Она берет время (например "09:00" и "18:00") и ставит меньшее выше
+            dailyEvents.sort(Comparator.comparing(e -> e.time));
+            // ==========================================
+
             scheduleMap.put(day, dailyEvents);
         }
 
