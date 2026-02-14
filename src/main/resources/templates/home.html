@@ -4,119 +4,291 @@
     <title>Student Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Синяя шапка */
+        .navbar-custom {
+            background-color: #2563eb; /* Ярко-синий как на фото */
+        }
+        .navbar-custom .nav-link {
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+        .navbar-custom .nav-link:hover, .navbar-custom .nav-link.active {
+            color: #fff;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
+        /* Карточки */
+        .card-dash {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+        }
+        .card-dash:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Иконки в карточках */
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .bg-icon-blue { background-color: #e0f2fe; color: #0284c7; }
+        .bg-icon-green { background-color: #dcfce7; color: #16a34a; }
+        .bg-icon-cyan { background-color: #cffafe; color: #0891b2; }
+        .bg-icon-yellow { background-color: #fef9c3; color: #ca8a04; }
+
+        /* Кнопки действий */
+        .btn-action {
+            text-align: left;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            background: white;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-action:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .btn-purple {
+            background-color: #7c3aed;
+            color: white;
+            border: none;
+        }
+        .btn-purple:hover {
+            background-color: #6d28d9;
+            color: white;
+        }
+
+        /* Прогресс бар */
+        .progress-thin {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-custom py-3 shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="#">🎓 University Portal</a>
-        <div class="navbar-nav me-auto">
-            <a class="nav-link active" href="/home">Dashboard</a>
-            <a class="nav-link" href="/courses">Catalog</a>
-            <a class="nav-link" href="/grades">Grades</a>
-            <a class="nav-link" href="/calendar">Calendar</a>
+        <a class="navbar-brand" href="#"><i class="bi bi-mortarboard-fill me-2"></i>UniEnroll</a>
+
+        <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="bi bi-list fs-2"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-4 me-auto">
+                <li class="nav-item"><a class="nav-link active" href="/home"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/courses"><i class="bi bi-book me-1"></i> Course Catalog</a></li>
+                <li class="nav-item"><a class="nav-link" href="/grades"><i class="bi bi-journal-check me-1"></i> My Courses</a></li>
+                <li class="nav-item"><a class="nav-link" href="/calendar"><i class="bi bi-calendar3 me-1"></i> Calendar</a></li>
+            </ul>
+
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle fs-5 me-2"></i>
+                    <span th:text="${student.name}">Student</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+                </ul>
+            </div>
         </div>
-        <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
     </div>
 </nav>
 
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold">Welcome back, <span class="text-primary" th:text="${student.name}">Student</span>! 👋</h2>
-            <p class="text-muted">Spring 2026 Semester Overview</p>
+<div class="container py-4">
+
+    <div class="card card-dash bg-white p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="fw-bold mb-1">Welcome back, <span th:text="${student.name.split(' ')[0]}">Student</span>!</h2>
+                <div class="text-muted small">
+                    <i class="bi bi-envelope me-1"></i> <span th:text="${student.email}">email</span>
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-cpu me-1"></i> <span th:text="${student.major}">Major</span>
+                </div>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill" th:text="${student.academicYear}">Year 1</span>
+            </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body text-center">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
-                        <i class="bi bi-person"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card card-dash h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-icon-blue me-3">
+                        <i class="bi bi-check2-square"></i>
                     </div>
-                    <h4 class="card-title" th:text="${student.name}">Name</h4>
-                    <p class="text-muted mb-1" th:text="${student.email}">Email</p>
-                    <span class="badge bg-success">Active Student</span>
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Enrolled Courses</div>
+                        <h3 class="fw-bold mb-0" th:text="${enrolledCount}">0</h3>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">Academic Load</h5>
-
-                    <div class="d-flex justify-content-between mb-1 align-items-end">
-                        <span class="small text-muted">Progress</span>
-                        <div>
-                                <span th:class="${credits < 18 ? 'text-warning fw-bold fs-4' : 'text-success fw-bold fs-4'}"
-                                      th:text="${credits}">0</span>
-                            <span class="text-muted small">/ 30 cr</span>
-                        </div>
+        <div class="col-md-3">
+            <div class="card card-dash h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-icon-green me-3">
+                        <i class="bi bi-credit-card"></i>
                     </div>
-
-                    <div class="progress mb-2" style="height: 10px;">
-                        <div th:class="${credits < 18 ? 'progress-bar bg-warning progress-bar-striped' : 'progress-bar bg-success'}"
-                             role="progressbar"
-                             th:style="'width: ' + (${credits} * 3.33) + '%'"></div>
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Credits</div>
+                        <h3 class="fw-bold mb-0">
+                            <span th:text="${credits}">0</span> <span class="text-muted fs-6">/ 30</span>
+                        </h3>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="d-flex justify-content-between small text-muted mb-3">
-                        <span>Min: 18</span>
-                        <span>Max: 30</span>
+        <div class="col-md-3">
+            <div class="card card-dash h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-icon-cyan me-3">
+                        <i class="bi bi-journal-bookmark"></i>
                     </div>
-
-                    <div th:if="${credits < 18}" class="alert alert-warning py-2 small mb-3">
-                        <i class="bi bi-exclamation-circle"></i> You need at least <strong>18 credits</strong> to pass.
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Available Courses</div>
+                        <h3 class="fw-bold mb-0" th:text="${totalCourses}">35</h3>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <a href="/courses" class="btn btn-outline-primary w-100">Manage Courses</a>
+        <div class="col-md-3">
+            <div class="card card-dash h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-icon-yellow me-3">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Classes This Week</div>
+                        <h3 class="fw-bold mb-0" th:text="${weeklyClasses}">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-dash p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>Credit Progress</h5>
+        </div>
+        <div class="progress progress-thin mb-2">
+            <div class="progress-bar" role="progressbar"
+                 th:classappend="${credits < 18 ? 'bg-warning' : 'bg-success'}"
+                 th:style="'width: ' + (${credits} * 3.33) + '%'"></div>
+        </div>
+        <div class="d-flex justify-content-between small text-muted">
+            <span><i class="bi bi-info-circle me-1"></i> Minimum: 18 credits recommended</span>
+            <span>Maximum: 30 credits allowed</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card card-dash h-100 p-4">
+                <h5 class="fw-bold mb-4">⚡ Quick Actions</h5>
+                <div class="d-grid gap-3">
+                    <a href="/courses" class="btn btn-action btn-purple text-white fw-bold shadow-sm">
+                        <i class="bi bi-search me-2"></i> Browse Courses
+                    </a>
+                    <a href="/grades" class="btn btn-action">
+                        <i class="bi bi-list-task me-2 text-primary"></i> View My Schedule
+                    </a>
+                    <a href="/calendar" class="btn btn-action">
+                        <i class="bi bi-calendar-week me-2 text-info"></i> View Calendar
+                    </a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-8">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check"></i> My Class Schedule</h5>
+            <div class="card card-dash h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">📚 My Enrolled Courses</h5>
+                    <a href="/grades" class="btn btn-sm btn-outline-primary" th:if="${!student.courses.isEmpty()}">View All</a>
                 </div>
-                <div class="card-body p-0">
-                    <div th:if="${student.courses.isEmpty()}" class="text-center py-5">
-                        <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
-                        <p class="mt-3 text-muted">You haven't enrolled in any courses yet.</p>
-                        <a href="/courses" class="btn btn-primary">Go to Catalog</a>
-                    </div>
 
-                    <table th:if="${!student.courses.isEmpty()}" class="table table-hover mb-0 align-middle">
-                        <thead class="table-light">
+                <div th:if="${student.courses.isEmpty()}" class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-inbox text-muted display-4 opacity-50"></i>
+                    </div>
+                    <p class="text-muted">You haven't enrolled in any courses yet.</p>
+                    <a href="/courses" class="btn btn-primary btn-sm px-4 rounded-pill">Find Courses</a>
+                </div>
+
+                <div th:if="${!student.courses.isEmpty()}" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light small text-muted">
                         <tr>
                             <th>Course</th>
-                            <th>Instructor</th>
-                            <th>Time</th>
-                            <th>Credits</th>
+                            <th>Schedule</th>
+                            <th class="text-center">Credits</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="c : ${student.courses}">
+                        <tr th:each="c, iterStat : ${student.courses}" th:if="${iterStat.index < 3}">
                             <td>
-                                <div class="fw-bold" th:text="${c.title}"></div>
-                                <small class="text-muted" th:text="${c.category}"></small>
+                                <div class="fw-bold text-dark" th:text="${c.title}"></div>
+                                <small class="text-muted" th:text="${c.instructor}"></small>
                             </td>
-                            <td th:text="${c.instructor}"></td>
                             <td>
                                         <span class="badge bg-light text-dark border">
                                             <i class="bi bi-clock"></i> <span th:text="${c.schedule}"></span>
                                         </span>
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <span class="badge bg-primary rounded-pill" th:text="${c.credits}"></span>
                             </td>
                         </tr>
                         </tbody>
                     </table>
+                    <div th:if="${student.courses.size() > 3}" class="text-center border-top pt-2">
+                        <a href="/grades" class="text-decoration-none small fw-bold">Show <span th:text="${student.courses.size() - 3}"></span> more...</a>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
+
+    <footer class="text-center text-muted small mt-5 pb-3">
+        &copy; 2026 UniEnroll - Student Course Registration System
+    </footer>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

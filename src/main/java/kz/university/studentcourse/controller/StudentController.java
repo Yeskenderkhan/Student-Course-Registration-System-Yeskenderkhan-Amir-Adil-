@@ -41,6 +41,7 @@ public class StudentController {
     public String login(@RequestParam String email, @RequestParam String password, HttpSession session) {
         Student student = studentRepo.findByEmail(email);
 
+        // Проверка пароля
         if (student != null && student.getPassword().equals(password)) {
             session.setAttribute("user", student);
             return "redirect:/home";
@@ -89,11 +90,12 @@ public class StudentController {
     private Student getFreshUser(HttpSession session) {
         Student sessionUser = (Student) session.getAttribute("user");
         if (sessionUser == null) return null;
+        // Всегда берем свежие данные из базы, чтобы видеть актуальные кредиты
         return studentRepo.findById(sessionUser.getId()).orElse(null);
     }
 
     // ==========================================
-    // 2. ОСНОВНЫЕ СТРАНИЦЫ
+    // 2. DASHBOARD (ГЛАВНАЯ) - СТАТИСТИКА
     // ==========================================
 
     @GetMapping("/home")
@@ -103,8 +105,35 @@ public class StudentController {
 
         model.addAttribute("student", user);
         model.addAttribute("credits", user.getCurrentCredits());
+
+        // --- СТАТИСТИКА ДЛЯ КАРТОЧЕК ---
+        // 1. Количество курсов
+        model.addAttribute("enrolledCount", user.getCourses().size());
+
+        // 2. Всего курсов в базе
+        model.addAttribute("totalCourses", courseRepo.count());
+
+        // 3. Занятий в неделю (парсим расписание)
+        int weeklyClasses = 0;
+        for (Course c : user.getCourses()) {
+            // Если расписание "Mon/Wed 10:00...", то сплит по "/" даст количество дней
+            try {
+                String days = c.getSchedule().split(" ")[0];
+                weeklyClasses += days.split("/").length;
+            } catch (Exception e) {
+                // Если формат странный, просто +1
+                weeklyClasses++;
+            }
+        }
+        model.addAttribute("weeklyClasses", weeklyClasses);
+        // -------------------------------
+
         return "home";
     }
+
+    // ==========================================
+    // 3. КАТАЛОГ КУРСОВ
+    // ==========================================
 
     @GetMapping("/courses")
     public String listCourses(Model model, HttpSession session, @RequestParam(required = false) String keyword) {
@@ -127,7 +156,7 @@ public class StudentController {
     }
 
     // ==========================================
-    // 3. ЗАПИСЬ (ENROLL / DROP)
+    // 4. ЛОГИКА ЗАПИСИ (ENROLL / DROP)
     // ==========================================
 
     @PostMapping("/enroll/{courseId}")
@@ -137,6 +166,7 @@ public class StudentController {
         Course course = courseRepo.findById(courseId).orElse(null);
         if (course == null) return "redirect:/courses";
 
+        // Проверки
         if (user.getCurrentCredits() + course.getCredits() > 30) return "redirect:/courses?error=credits";
 
         if (course.getPrerequisite() != null) {
@@ -151,15 +181,18 @@ public class StudentController {
             }
         }
 
+        // Запись
         if (course.hasSeats() && !user.getCourses().contains(course)) {
             user.getCourses().add(course);
             course.getStudents().add(user);
             course.setSeats(course.getSeats() - 1);
 
+            // ОБНОВЛЯЕМ КРЕДИТЫ (+)
             user.setCurrentCredits(user.getCurrentCredits() + course.getCredits());
 
             studentRepo.save(user);
             courseRepo.save(course);
+            // Возвращаем на тот же курс (скролл)
             return "redirect:/courses#course-" + courseId;
         }
         return "redirect:/courses";
@@ -176,32 +209,37 @@ public class StudentController {
             course.getStudents().remove(user);
             course.setSeats(course.getSeats() + 1);
 
+            // ОБНОВЛЯЕМ КРЕДИТЫ (-)
             user.setCurrentCredits(user.getCurrentCredits() - course.getCredits());
 
             studentRepo.save(user);
             courseRepo.save(course);
+            // Возвращаем на тот же курс (скролл)
             return "redirect:/courses#course-" + courseId;
         }
         return "redirect:/courses";
     }
 
     // ==========================================
-    // 4. ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+    // 5. ПРОВЕРКА КОНФЛИКТОВ
     // ==========================================
 
     private boolean isTimeConflict(String schedule1, String schedule2) {
         try {
+            // Формат строки: "Mon/Wed 09:00-10:15"
             String[] parts1 = schedule1.split(" ");
             String[] parts2 = schedule2.split(" ");
 
+            // 1. Проверка дней
             boolean commonDay = false;
             for (String d1 : parts1[0].split("/")) {
                 for (String d2 : parts2[0].split("/")) {
                     if (d1.equals(d2)) { commonDay = true; break; }
                 }
             }
-            if (!commonDay) return false;
+            if (!commonDay) return false; // Если дни разные, конфликта нет
 
+            // 2. Проверка времени
             int[] range1 = parseTimeRange(parts1[1]);
             int[] range2 = parseTimeRange(parts2[1]);
             return (range1[0] < range2[1] && range1[1] > range2[0]);
@@ -220,7 +258,7 @@ public class StudentController {
     }
 
     // ==========================================
-    // 5. GRADES & CALENDAR (С СОРТИРОВКОЙ)
+    // 6. ОЦЕНКИ И КАЛЕНДАРЬ
     // ==========================================
 
     @GetMapping("/grades")
@@ -244,16 +282,16 @@ public class StudentController {
 
             List<CalendarEvent> dailyEvents = new ArrayList<>();
             for (Course c : user.getCourses()) {
+                // Если день недели совпадает
                 if (c.getSchedule().split(" ")[0].contains(dayOfWeek)) {
+                    // Берем вторую часть строки "09:00-10:15"
                     String time = c.getSchedule().split(" ")[1];
                     dailyEvents.add(new CalendarEvent(c.getTitle(), time, "bg-primary"));
                 }
             }
 
-            // === ВОТ ЭТА МАГИЯ СОРТИРУЕТ ПО ВРЕМЕНИ ===
-            // Она берет время (например "09:00" и "18:00") и ставит меньшее выше
+            // Сортировка по времени (утро выше вечера)
             dailyEvents.sort(Comparator.comparing(e -> e.time));
-            // ==========================================
 
             scheduleMap.put(day, dailyEvents);
         }
